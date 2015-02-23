@@ -9,7 +9,7 @@ public class MainTS extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			Scene scene = new Scene((Parent) JfxUtils.loadFxml("ui.fxml"), 1320, 900);
+			Scene scene = new Scene((Parent) JfxUtils.loadFxml("ui.fxml"), 1520, 900);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.show();

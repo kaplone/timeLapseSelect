@@ -16,7 +16,7 @@ public class SelectUtil {
 	
 	
 	
-	public static  ObservableList<File> select(Select s) {
+	public static  ObservableList<File> select(Select s, File txt) {
 		
 		int i = 0;
 		int pre = 0;
@@ -38,8 +38,7 @@ public class SelectUtil {
 		File curFile;
 		
 		FileWriter write_txt = null;
-		
-		File txt = new File("/home/autor/Desktop/liste_select.txt");
+
 		try {
 			write_txt = new FileWriter(txt);
 		} catch (IOException e) {
@@ -139,8 +138,6 @@ public class SelectUtil {
 				
 			    curFile = (File) cur.next();
 			    //System.out.println("suite : " + curFile);
-			    
-			    System.out.println(curFile.getName().split("_")[2] + " " + jour);
 	
 	    		if (curFile.getName().endsWith("jpg")
 	    		    && (Integer.parseInt(curFile.getName().split("_")[2])> jour 

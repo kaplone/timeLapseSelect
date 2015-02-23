@@ -1,9 +1,26 @@
 package timeSelect;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.lang.ProcessBuilder.Redirect;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
+import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -15,18 +32,31 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.shape.Polygon;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 public class TSUIController implements Initializable {
 	
+	//@FXML
+	//private ChoiceBox<String> source;
 	@FXML
-	private ChoiceBox<String> source;
+	private Button rep_lec_btn;
 	@FXML
 	private ChoiceBox<String> plage;
 	@FXML
@@ -34,16 +64,26 @@ public class TSUIController implements Initializable {
 	@FXML
 	private ChoiceBox<String> debut;
 	@FXML
+	private DatePicker date_deb_pick;
+	@FXML
+	private DatePicker date_fin_pick;
+	@FXML
+	private Button exporter_btn;
+	@FXML
+	private ProgressBar pgrs_bar;
+	@FXML
+	private ProgressBar pgrs_bar_2;
+	@FXML
 	private ImageView view;
 	@FXML
 	private Slider slider;
 	@FXML
+	private Button settings_btn;
+	@FXML
 	private Label label;
+	@FXML
+	private Polygon play_btn;
 	
-	
-	
-	private ObservableList<String> sources = FXCollections.observableArrayList();
-	private ObservableList<File> sourcesF = FXCollections.observableArrayList();
 	private ObservableList<String> plages = FXCollections.observableArrayList();
 	private ObservableList<String> decalages = FXCollections.observableArrayList();
 	private ObservableList<String> debuts = FXCollections.observableArrayList();
@@ -58,29 +98,219 @@ public class TSUIController implements Initializable {
 	private Image tmpImage;
 	
 	private Select sel = new Select();
+	
+	private Date date_deb;
+	private Date date_fin;
+	
+	private File repLec;
+	private File export;
+	
+	private String home;
+	
+	private File settings_file ;
+	
+	private static Settings settings = new Settings();;
+	
+	
+	
+	protected File chooseRepLec(){
+		
+		Stage newStage = new Stage();
+		
+		DirectoryChooser dirChooser = new DirectoryChooser();
+		dirChooser.setTitle("Répertoire de lecture");
+		File selectedDir = dirChooser.showDialog(newStage);
+		 if (selectedDir != null) {
+			 return selectedDir;
+		 }
+		 else {
+			 return (File) null;
+		 }
+		
+	}
+	
+    protected File chooseExport(){
+		
+		Stage newStage = new Stage();
+		
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Enregistrer sous");
+		fileChooser.getExtensionFilters().addAll(
+		         new FileChooser.ExtensionFilter(".mov videos", "*.mov"));
+		File selectedFile = fileChooser.showSaveDialog(newStage);
+		if (selectedFile != null) {
+			 return selectedFile;
+		}
+		else {
+			 return (File) null;
+		}
+		
+	}
+    
+    @FXML
+    protected void onRepLecBtn(){
+    	repLec = chooseRepLec();
+    	rep_lec_btn.setText(repLec.toString());
+    	sel.setFile(repLec);
+    	maj();
+    }
+    @FXML
+    protected void onExportBtn(){
+    	export = chooseExport();
+
+    	String [] command_m = new String [] {settings.getMencoder().toString(),
+    			                           "-nosound",
+    			                           "-ovc",
+    			                           "copy",
+    			                           "-o",
+    			                           "/tmp/out.mov",
+    			                           //"-really-quiet",
+    			                           String.format("mf://@%s", settings.getListe().toString()),
+    			                           "-mf",
+    			                           "fps=25:type=jpg"};
+    	String [] command_f = new String [] {
+    			                           settings.getFfmpeg().toString(),
+    			                           "-i",
+    			                           "/tmp/out.mov",
+    			                           "-vcodec",
+    			                           "prores",
+    			                           "-an",
+    			                           export.toString().toString()};   
+    	
+    	System.out.println(Arrays.asList(command_m).stream().collect(Collectors.joining(" ")));
+    	
+
+    	BufferedReader is;
+		
+		new Thread(new Runnable(){
+		
+			@Override
+			public void run() {
+				Process p;
+				try {
+					p = new ProcessBuilder(command_m).start();
+					p.getOutputStream().close();
+
+					AfficheurFlux fluxSortie = new AfficheurFlux(p.getInputStream(), pgrs_bar, (int)slider.getMax());
+		            //AfficheurFlux fluxErreur = new AfficheurFlux(p.getErrorStream(), pgrs_bar, slider.getMax());
+		            
+		            
+		            new Thread(fluxSortie).start();
+		            //new Thread(fluxErreur).start();
+		            
+		            p.waitFor();
+		            
+		            p.getInputStream().close();
+		            p.getErrorStream().close();
+		            
+		            System.out.println(Arrays.asList(command_f).stream().collect(Collectors.joining(" ")));
+		            
+		            new Thread(new Runnable(){
+		    			
+		    			@Override
+		    			public void run() {
+		    				Process p;
+		    				try {
+		    					p = new ProcessBuilder(command_f).start();
+		    					p.getOutputStream().close();
+
+		    					//AfficheurFlux fluxSortie = new AfficheurFlux(p.getInputStream(), pgrs_bar_2, slider.getMax());
+		    		            AfficheurFlux fluxErreur = new AfficheurFlux(p.getErrorStream(), pgrs_bar_2, (int)slider.getMax());
+		    		            
+		    		            
+		    		            //new Thread(fluxSortie).start();
+		    		            new Thread(fluxErreur).start();
+		    		            
+		    		            p.waitFor();
+		    		            
+		    		            p.getInputStream().close();
+		    		            p.getErrorStream().close();
+		    					
+		    				} catch (IOException | InterruptedException e) {
+		    					// TODO Bloc catch généré automatiquement
+		    					e.printStackTrace();
+		    				}
+		    				
+		    			}
+		    		}).start();
+					
+				} catch (IOException | InterruptedException e) {
+					// TODO Bloc catch généré automatiquement
+					e.printStackTrace();
+				}
+				
+			}
+		}).start();
+
+    }
+    
+    @FXML
+    protected void onSettingsBtn(){
+    	
+
+ 	
+    	Stage stageSettins = new Stage();
+    	TitledPane tp = new TitledPane();
+    	Scene scene = new Scene((Parent) JfxUtils.loadFxml("uiSettings.fxml"), 500, 400);
+    	stageSettins.setScene(scene);
+    	stageSettins.setAlwaysOnTop(true);
+    	stageSettins.show();
+    	
+    }
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		
-		File rep = new File("/home/autor/Desktop/tests_select");
+		home =  System.getProperty("user.home");
+		settings_file = new File(home, "ts_select.conf");
 		
-		sources.add("selectionner un repertoire");
-		sourcesF.addAll(rep.listFiles());
-		
-		for (File f : sourcesF){
-			String [] elem = f.toString().split("/");
-			sources.add(elem[elem.length -2] + "/" + elem[elem.length -1]);
+		if ( ! settings_file.exists()){
+			onSettingsBtn();
+		}else{
+			FileReader fr = null;
+			try {
+				fr = new FileReader(settings_file);
+			} catch (FileNotFoundException e1) {
+				// TODO Bloc catch généré automatiquement
+				e1.printStackTrace();
+			}
+	    	BufferedReader br = new BufferedReader(fr);
+	    	
+	    	String s = null;
+			try {
+				s = br.readLine();
+			} catch (IOException e1) {
+				// TODO Bloc catch généré automatiquement
+				e1.printStackTrace();
+			}
+	    	while(s != null){
+	    		String key = s.split(":")[0];
+	    		String value = s.split(":")[1];
+	    		switch (key){
+	    		
+	    		case "ffmpeg" : settings.setFfmpeg(new File(value));
+	    		                break;
+	    		case "mencoder" : settings.setMencoder(new File(value));
+	    		                  break;
+	    		case "liste" : settings.setListe(new File(value));
+	    		
+	    		}
+	    		try {
+					s = br.readLine();
+				} catch (IOException e) {
+					
+					e.printStackTrace();
+					break;
+				}
+	    	}
+	    	try {
+				fr.close();
+			} catch (IOException e) {
+				// TODO Bloc catch généré automatiquement
+				e.printStackTrace();
+			}
 		}
-		
-		source.setItems(sources);
-		source.getSelectionModel().select(0);
-		source.getSelectionModel().selectedIndexProperty().addListener(new
-	            ChangeListener<Number>() {
-	                public void changed(ObservableValue ov,
-	                    Number value, Number new_value) {
-	            }
-		});
-		
+
 		
 		plages.addAll(new String [] {"selectionner une plage",
                                      "1 image",
@@ -105,13 +335,15 @@ public class TSUIController implements Initializable {
 		
 		decalages.addAll(new String [] {"selectionner un decalage",
                 "1 minute",
-                "5 minute",
-                "10 minute",
-                "15 minute",
-                "20 minute",
-                "30 minute",
-                "45 minute",
-                "60 minute"
+                "5 minutes",
+                "10 minutes",
+                "15 minutes",
+                "20 minutes",
+                "25 minutes",
+                "30 minutes",
+                "35 minutes",
+                "45 minutes",
+                "60 minutes"
                 });
        decalage.setItems(decalages);
        decalage.getSelectionModel().select(0);
@@ -173,41 +405,27 @@ public class TSUIController implements Initializable {
 				String tmp = aff.get(num.get()).toString();
 				
 				nom.set(num.get() + "    " + tmp);
-				System.out.println(tmp);
 				
 				tmpImage = new Image("file://" + tmp);
 				
 				sbi.set(tmpImage);
 			}
-			else System.out.println("aff.size() = " + aff.size() );
-				
-				return nom.get();
-			}
-		};
+			return nom.get();
+		}
+	};
+   
+   label.textProperty().unbind();
 
-       
-		source.getSelectionModel().selectedIndexProperty().addListener(new
-	            ChangeListener<Number>() {
-	                public void changed(ObservableValue ov,
-	                    Number value, Number new_value) {
-	                	
-	                	sel.setFile(sourcesF.get((int) new_value - 1));
-	                	
-	                	maj();
-	            }
-		});
-       
-       label.textProperty().unbind();
-   	
-       label.textProperty().bind(sb);
+   label.textProperty().bind(sb);
 
-   	   view.imageProperty().bind(sbi);
+   view.imageProperty().bind(sbi);
 
 	}
 	
 	protected void maj(){
+		
     	
-    	aff = SelectUtil.select(sel); 
+    	aff = SelectUtil.select(sel, settings.getListe() ); 
     	
     	if (aff != null && aff.size() > 0){
     		slider.setMax(aff.size() -1);
@@ -215,6 +433,14 @@ public class TSUIController implements Initializable {
     	slider.setMin(0);
     	slider.isSnapToTicks();
 		
+	}
+
+	public static Settings getSettings() {
+		return settings;
+	}
+
+	public static void setSettings(Settings settings) {
+		TSUIController.settings = settings;
 	}
 	
 	
