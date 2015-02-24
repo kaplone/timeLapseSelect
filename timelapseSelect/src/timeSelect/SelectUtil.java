@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,6 +36,11 @@ public class SelectUtil {
 		
 		int compte = 0;
 		
+		String date_in;
+		String date_out;
+		
+		String courant_string;
+		
 		File curFile;
 		
 		FileWriter write_txt = null;
@@ -48,7 +54,7 @@ public class SelectUtil {
 		
 		ObservableList<File> aff = FXCollections.observableArrayList();
 		
-		if (s.getFile() == null){
+		if (s.getPreview() == null){
 			System.out.println("s.getFile == null");
 			return null;
 		}
@@ -56,12 +62,37 @@ public class SelectUtil {
 		
 		ArrayList<File> fichiersAL = new ArrayList<>();
 		   	
-		File[] fichiers = s.getFile().listFiles();
+		File[] fichiers = s.getPreview().listFiles();
 		Arrays.sort(fichiers);
 		
-		ArrayList<File> fichs = new ArrayList<File>(Arrays.asList(fichiers));
 		
-		Iterator cur = fichs.iterator();
+		
+		ArrayList<File> fichs = new ArrayList<File>(Arrays.asList(fichiers));
+		ArrayList<File> fichs_filtre = new ArrayList<File>();
+		
+		Iterator cur_filter = fichs.iterator();
+		
+		File courant;
+		
+		date_in = s.getDateString_in() ;
+		date_out = s.getDateString_out() ;
+		
+		
+		while (cur_filter.hasNext()){
+			
+			courant = (File) cur_filter.next();
+			
+			if(courant.getName().endsWith("jpg")){
+				courant_string = Arrays.asList(courant.toString().split("/")[courant.toString().split("/").length -1].split("_")).subList(0, 3).stream().collect(Collectors.joining("_"));
+			
+				if (courant_string.toString().compareTo(date_in) >= 0 && courant_string.compareTo(date_out) <= 0){
+					System.out.println(date_in + " " + courant_string + " " + date_out );
+					fichs_filtre.add(courant);
+				}
+			}
+		}
+		
+		Iterator cur = fichs_filtre.iterator();
 		
 		int avance = s.getDebut();
 		
@@ -76,8 +107,7 @@ public class SelectUtil {
 			    curFile = (File) cur.next();
 			    System.out.println("demarrage : " + curFile);
 	
-	    		if (curFile.getName().endsWith("jpg")
-	    			&& Integer.parseInt(curFile.getName().split("_")[3].split("h")[0]) == avance){
+	    		if (Integer.parseInt(curFile.getName().split("_")[3].split("h")[0]) == avance){
 	    			
 	    			flag_debut = false;
 	    			flag_decompte = true;
@@ -139,11 +169,9 @@ public class SelectUtil {
 			    curFile = (File) cur.next();
 			    //System.out.println("suite : " + curFile);
 	
-	    		if (curFile.getName().endsWith("jpg")
-	    		    && (Integer.parseInt(curFile.getName().split("_")[2])> jour 
-	    		    	|| (Integer.parseInt(curFile.getName().split("_")[2]) == 1 
-	    		    		&& (jour == 30
-	    		    		    || jour == 31)))
+	    		if ((Integer.parseInt(curFile.getName().split("_")[2])> jour 
+	    		    	|| (Integer.parseInt(curFile.getName().split("_")[2]) < 10 
+	    		    		&& jour > 20))
 	    			&& Integer.parseInt(curFile.getName().split("_")[3].split("h")[0]) >= heure 
 	    			&& Integer.parseInt(curFile.getName().split("_")[3].split("h")[1].split("m")[0]) > minute - s.getDelcalage()){
 	    			

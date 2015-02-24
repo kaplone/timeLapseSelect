@@ -13,9 +13,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -56,7 +58,9 @@ public class TSUIController implements Initializable {
 	//@FXML
 	//private ChoiceBox<String> source;
 	@FXML
-	private Button rep_lec_btn;
+	private Button rep_preview_btn;
+	@FXML
+	private Button rep_full_btn;
 	@FXML
 	private ChoiceBox<String> plage;
 	@FXML
@@ -99,10 +103,11 @@ public class TSUIController implements Initializable {
 	
 	private Select sel = new Select();
 	
-	private Date date_deb;
-	private Date date_fin;
+	private LocalDate date_deb;
+	private LocalDate date_fin;
 	
-	private File repLec;
+	private File repPreview;
+	private File repFull;
 	private File export;
 	
 	private String home;
@@ -113,12 +118,12 @@ public class TSUIController implements Initializable {
 	
 	
 	
-	protected File chooseRepLec(){
+	protected File chooseRepLec(String s){
 		
 		Stage newStage = new Stage();
 		
 		DirectoryChooser dirChooser = new DirectoryChooser();
-		dirChooser.setTitle("Répertoire de lecture");
+		dirChooser.setTitle(s);
 		File selectedDir = dirChooser.showDialog(newStage);
 		 if (selectedDir != null) {
 			 return selectedDir;
@@ -148,15 +153,65 @@ public class TSUIController implements Initializable {
 	}
     
     @FXML
-    protected void onRepLecBtn(){
-    	repLec = chooseRepLec();
-    	rep_lec_btn.setText(repLec.toString());
-    	sel.setFile(repLec);
-    	maj();
+    protected void onDateDebPick(){
+    	date_deb = date_deb_pick.getValue();
+    	sel.setDate_in(date_deb);
+    	//maj();
+    }
+    
+    @FXML
+    protected void onDateFinPick(){
+    	date_fin = date_fin_pick.getValue();
+    	sel.setDate_out(date_fin);
+    	//maj();
+    	
+    }
+    
+    @FXML
+    protected void onRepPreviewBtn(){
+    	repPreview = chooseRepLec("Répertoire des previews");
+    	rep_preview_btn.setText(repPreview.toString());
+    	sel.setPreview(repPreview);
+    	majDateInit();
+    	//maj();
+    	
+    }
+    @FXML
+    protected void onRepFullBtn(){
+    	repFull = chooseRepLec("Répertoire des full size");
+    	rep_full_btn.setText(repFull.toString());
+    	sel.setFull(repFull);
+    	//maj();
     }
     @FXML
     protected void onExportBtn(){
     	export = chooseExport();
+    	
+    	String liste_full = "";
+    	
+    	try {
+			FileReader fr_prev = new FileReader(settings.getListe());
+			BufferedReader br_prev = new BufferedReader(fr_prev);
+			
+			
+			
+			String line_prev = null;
+			while((line_prev = br_prev.readLine()) != null){
+				liste_full += line_prev.replace(sel.getPreview().toString(), sel.getFull().toString()) + "\n";
+			}
+			
+			fr_prev.close();
+			FileWriter fr_full = new FileWriter(settings.getListe());
+			fr_full.write(liste_full);
+			fr_full.flush();
+			fr_full.close();
+
+			
+		} catch (IOException e1) {
+			// TODO Bloc catch généré automatiquement
+			e1.printStackTrace();
+		}
+
 
     	String [] command_m = new String [] {settings.getMencoder().toString(),
     			                           "-nosound",
@@ -240,7 +295,7 @@ public class TSUIController implements Initializable {
 				}
 				
 			}
-		}).start();
+		});//.start();
 
     }
     
@@ -260,6 +315,8 @@ public class TSUIController implements Initializable {
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		
+		
 		
 		home =  System.getProperty("user.home");
 		settings_file = new File(home, "ts_select.conf");
@@ -424,14 +481,46 @@ public class TSUIController implements Initializable {
 	
 	protected void maj(){
 		
-    	
-    	aff = SelectUtil.select(sel, settings.getListe() ); 
+		aff = SelectUtil.select(sel, settings.getListe() ); 
     	
     	if (aff != null && aff.size() > 0){
     		slider.setMax(aff.size() -1);
     	}
     	slider.setMin(0);
     	slider.isSnapToTicks();
+		
+	}
+	
+	protected void majDateInit(){
+		
+		String [] liste_triee = sel.getPreview().list();
+		Arrays.sort(liste_triee);
+		
+		String premiere = (String) Arrays.asList(liste_triee).stream().filter(c -> c.contains(".jpg")).toArray()[0];
+		String derniere = (String) Arrays.asList(liste_triee).stream().filter(c -> c.contains(".jpg")).toArray()[Arrays.asList(liste_triee).stream().filter(c -> c.contains(".jpg")).toArray().length -1];
+		
+		System.out.println(premiere);
+		System.out.println(derniere);
+		
+		
+		date_deb_pick.setValue(LocalDate.of(Integer.parseInt(premiere.split("_")[0]),
+                                            Integer.parseInt(premiere.split("_")[1]),
+                                            Integer.parseInt(premiere.split("_")[2])));
+		
+		date_fin_pick.setValue(LocalDate.of(Integer.parseInt(derniere.split("_")[0]),
+                                            Integer.parseInt(derniere.split("_")[1]),
+                                            Integer.parseInt(derniere.split("_")[2])));
+		
+		sel.setDate_in(LocalDate.of(Integer.parseInt(premiere.split("_")[0]),
+                                    Integer.parseInt(premiere.split("_")[1]),
+                                    Integer.parseInt(premiere.split("_")[2])));
+		
+		sel.setDate_out(LocalDate.of(Integer.parseInt(derniere.split("_")[0]),
+                                     Integer.parseInt(derniere.split("_")[1]),
+                                     Integer.parseInt(derniere.split("_")[2])));
+		
+		System.out.println("****" + sel.getDate_in());
+		System.out.println("****" + sel.getDate_out());
 		
 	}
 
