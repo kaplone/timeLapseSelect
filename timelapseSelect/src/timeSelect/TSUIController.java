@@ -114,7 +114,9 @@ public class TSUIController implements Initializable {
 	
 	private File settings_file ;
 	
-	private static Settings settings = new Settings();;
+	private static Settings settings = new Settings();
+	
+	private boolean loaded = false;
 	
 	
 	
@@ -156,14 +158,18 @@ public class TSUIController implements Initializable {
     protected void onDateDebPick(){
     	date_deb = date_deb_pick.getValue();
     	sel.setDate_in(date_deb);
-    	//maj();
+    	if(loaded){
+    		maj();
+    	}
     }
     
     @FXML
     protected void onDateFinPick(){
     	date_fin = date_fin_pick.getValue();
     	sel.setDate_out(date_fin);
-    	//maj();
+    	if(loaded){
+    		maj();
+    	}
     	
     }
     
@@ -173,7 +179,7 @@ public class TSUIController implements Initializable {
     	rep_preview_btn.setText(repPreview.toString());
     	sel.setPreview(repPreview);
     	majDateInit();
-    	//maj();
+    	maj();
     	
     }
     @FXML
@@ -521,6 +527,8 @@ public class TSUIController implements Initializable {
 		
 		System.out.println("****" + sel.getDate_in());
 		System.out.println("****" + sel.getDate_out());
+		
+		loaded = true; 
 		
 	}
 
