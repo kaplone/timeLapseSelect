@@ -109,6 +109,7 @@ public class TSUIController implements Initializable {
 	private File repPreview;
 	private File repFull;
 	private File export;
+	private File tempFile;
 	
 	private String home;
 	
@@ -192,6 +193,8 @@ public class TSUIController implements Initializable {
     @FXML
     protected void onExportBtn(){
     	export = chooseExport();
+    	tempFile = new File(export.getParent(), export.getName().replace(".mov", "_temp.mov"));
+    	
     	
     	String liste_full = "";
     	
@@ -224,7 +227,7 @@ public class TSUIController implements Initializable {
     			                           "-ovc",
     			                           "copy",
     			                           "-o",
-    			                           "/tmp/out.mov",
+    			                           tempFile.toString(),
     			                           //"-really-quiet",
     			                           String.format("mf://@%s", settings.getListe().toString()),
     			                           "-mf",
@@ -232,7 +235,7 @@ public class TSUIController implements Initializable {
     	String [] command_f = new String [] {
     			                           settings.getFfmpeg().toString(),
     			                           "-i",
-    			                           "/tmp/out.mov",
+    			                           tempFile.toString(),
     			                           "-vcodec",
     			                           "prores",
     			                           "-an",
