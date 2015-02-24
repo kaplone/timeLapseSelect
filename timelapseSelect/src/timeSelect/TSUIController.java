@@ -400,6 +400,7 @@ public class TSUIController implements Initializable {
 		});
 		
 		decalages.addAll(new String [] {"selectionner un decalage",
+				"automatique",
                 "1 minute",
                 "5 minutes",
                 "10 minutes",
@@ -417,8 +418,12 @@ public class TSUIController implements Initializable {
 	            ChangeListener<Number>() {
 	                public void changed(ObservableValue ov,
 	                    Number value, Number new_value) {
-	                	if (new_value.intValue()!= 0){
+	                	if (new_value.intValue()!= 0 && new_value.intValue()!= 1){
 	                	    sel.setDecalage(Integer.parseInt(decalages.get((int) new_value).split(" ")[0]));
+	                	    maj();
+	                	}
+	                	else if(new_value.intValue()!= 1){
+	                		sel.setDecalage(sel.getPlage() * 14);
 	                	    maj();
 	                	}
 	            }
