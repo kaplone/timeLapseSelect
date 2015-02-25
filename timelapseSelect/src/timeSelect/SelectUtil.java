@@ -102,9 +102,10 @@ public class SelectUtil {
 			
 			// demarrage
 			
+			curFile = (File) cur.next();
+			
 			if (flag_debut){
-				
-			    curFile = (File) cur.next();
+
 			    System.out.println("demarrage : " + curFile);
 	
 	    		if (Integer.parseInt(curFile.getName().split("_")[3].split("h")[0]) == avance){
@@ -136,8 +137,7 @@ public class SelectUtil {
 			
 		
 			if (flag_decompte && compte < s.getPlage()){
-				
-				curFile = (File) cur.next();
+
 				System.out.println("decompte : " + curFile);
 				
 				annee = Integer.parseInt(curFile.getName().split("_")[0]);
@@ -166,7 +166,7 @@ public class SelectUtil {
 			
 			if (flag_suite){
 				
-			    curFile = (File) cur.next();
+			    
 			    //System.out.println("suite : " + curFile);
 	
 	    		if ((Integer.parseInt(curFile.getName().split("_")[2])> jour 

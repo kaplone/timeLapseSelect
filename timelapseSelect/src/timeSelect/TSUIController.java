@@ -206,7 +206,7 @@ public class TSUIController implements Initializable {
 			
 			String line_prev = null;
 			while((line_prev = br_prev.readLine()) != null){
-				liste_full += line_prev.replace(sel.getPreview().toString(), sel.getFull().toString()) + "\n";
+				liste_full += String.format("%s\n", line_prev.replace(sel.getPreview().toString(), sel.getFull().toString()).replace(" ", "\\ ") );
 			}
 			
 			fr_prev.close();
@@ -423,7 +423,7 @@ public class TSUIController implements Initializable {
 	                	    maj();
 	                	}
 	                	else if(new_value.intValue()!= 1){
-	                		sel.setDecalage(sel.getPlage() * 14);
+	                		sel.setDecalage(sel.getPlage() * 6);
 	                	    maj();
 	                	}
 	            }
