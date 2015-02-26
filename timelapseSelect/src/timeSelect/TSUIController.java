@@ -304,7 +304,7 @@ public class TSUIController implements Initializable {
 				}
 				
 			}
-		});//.start();
+		}).start();
 
     }
     
