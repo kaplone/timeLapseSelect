@@ -1,0 +1,9 @@
+#fenetre {
+	-fx-background-color: rgb(160,160,160)
+}
+#play_btn{
+	-fx-opacity: 0.0 
+}
+#fenetre_settings {
+	-fx-background-color: rgb(127,127,127)
+}

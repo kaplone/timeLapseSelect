@@ -7,8 +7,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<BorderPane prefHeight="900.0" prefWidth="1320.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="timeSelect.TSUIController">
-<right><VBox prefHeight="819.0" prefWidth="274.0" BorderPane.alignment="CENTER">
+<BorderPane fx:id="fenetre" prefHeight="900.0" prefWidth="1320.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="timeSelect.TSUIController">
+<right><VBox  prefHeight="819.0" prefWidth="274.0" BorderPane.alignment="CENTER">
 <children><Label text="répertoire des previews" /><Button fx:id="rep_preview_btn" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#onRepPreviewBtn" prefHeight="25.0" prefWidth="270.0" text="previews">
 <VBox.margin>
 <Insets top="5.0" />

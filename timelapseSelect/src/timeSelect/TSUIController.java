@@ -315,7 +315,8 @@ public class TSUIController implements Initializable {
  	
     	Stage stageSettins = new Stage();
     	TitledPane tp = new TitledPane();
-    	Scene scene = new Scene((Parent) JfxUtils.loadFxml("uiSettings.fxml"), 500, 400);
+    	Scene scene = new Scene((Parent) JfxUtils.loadFxml("uiSettings.fxml"), 600, 400);
+    	scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
     	stageSettins.setScene(scene);
     	stageSettins.setAlwaysOnTop(true);
     	stageSettins.show();
