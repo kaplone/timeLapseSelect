@@ -12,7 +12,7 @@ par exemple : 3 images par jour, sans chevauchement, à partir du lundi 3 août 
 - mardi 4/8 5h20
 - mardi 4/8  5h25
 - mercredi 5/8 5h30
-...
+-  ...
 - lundi 28/9 18h15
 - lundi 28/9 18h20
 - lundi 28/9 18h25
